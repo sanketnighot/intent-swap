@@ -183,6 +183,8 @@ See `.env.example`:
 
 ## CLI
 
+Full command reference is in `docs/cli-reference.md`.
+
 Run help:
 
 ```bash
@@ -253,6 +255,10 @@ Run current Python unit tests:
 python3 -m unittest discover -s tests -v
 ```
 
+Contract guard assertions are included in:
+
+- `tests/test_contract_guards.py`
+
 ## Coding Agent Setup
 
 This repository includes cross-agent instruction files:
@@ -269,10 +275,10 @@ This repository includes cross-agent instruction files:
 
 For hackathon submission completeness:
 
-- Include deployment and execution transaction IDs
-- Keep this README with architecture and run steps
+- Use `docs/evidence-checklist.md` and fill all tx-id fields.
+- Keep this README, `docs/cli-reference.md`, and `docs/demo-script.md` aligned.
 - Provide demo video (<= 3 min) showing:
   - intent creation
-  - agent detecting executable state
-  - execution tx
-  - successful hook enforcement
+  - agent detection/execution pass
+  - execution tx confirmation
+  - hook enforcement behavior
