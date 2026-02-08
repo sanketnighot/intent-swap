@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {BaseHook} from "@uniswap/v4-periphery/src/base/hooks/BaseHook.sol";
+import {BaseHook} from "@uniswap/v4-periphery/src/utils/BaseHook.sol";
 import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
 import {StateLibrary} from "@uniswap/v4-core/src/libraries/StateLibrary.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
@@ -9,6 +9,7 @@ import {Currency} from "@uniswap/v4-core/src/types/Currency.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
 import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/src/types/PoolId.sol";
 import {BeforeSwapDelta} from "@uniswap/v4-core/src/types/BeforeSwapDelta.sol";
+import {SwapParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
 
 contract IntentSwapHook is BaseHook {
     using PoolIdLibrary for PoolKey;
@@ -114,7 +115,7 @@ contract IntentSwapHook is BaseHook {
     function canExecuteIntent(
         uint256 intentId,
         PoolKey calldata key,
-        IPoolManager.SwapParams calldata params
+        SwapParams calldata params
     ) external view returns (bool) {
         Intent memory intent = intents[intentId];
 
@@ -137,7 +138,7 @@ contract IntentSwapHook is BaseHook {
     function _beforeSwap(
         address sender,
         PoolKey calldata key,
-        IPoolManager.SwapParams calldata params,
+        SwapParams calldata params,
         bytes calldata hookData
     ) internal override returns (bytes4, BeforeSwapDelta, uint24) {
         if (hookData.length != 32) revert InvalidHookData();
@@ -151,7 +152,7 @@ contract IntentSwapHook is BaseHook {
         return (BaseHook.beforeSwap.selector, BeforeSwapDelta.wrap(0), 0);
     }
 
-    function _validateIntent(uint256 intentId, PoolKey calldata key, IPoolManager.SwapParams calldata params) internal view {
+    function _validateIntent(uint256 intentId, PoolKey calldata key, SwapParams calldata params) internal view {
         Intent memory intent = intents[intentId];
 
         if (intent.user == address(0)) revert IntentNotFound();
@@ -178,10 +179,10 @@ contract IntentSwapHook is BaseHook {
         }
 
         if (intent.referenceSqrtPriceX96 == 0) return false;
-        uint256 reference = uint256(intent.referenceSqrtPriceX96);
+        uint256 ref = uint256(intent.referenceSqrtPriceX96);
         uint256 current = uint256(currentSqrtPriceX96);
-        uint256 delta = reference > current ? reference - current : current - reference;
-        uint256 slippageBps = (delta * 10_000) / reference;
+        uint256 delta = ref > current ? ref - current : current - ref;
+        uint256 slippageBps = (delta * 10_000) / ref;
 
         return slippageBps <= uint256(intent.conditionValue);
     }
