@@ -5,7 +5,8 @@
   "description": "Minimal intent-based swap execution on Uniswap v4 hooks",
   "scripts": {
     "deploy": "node scripts/deploy.js",
-    "agent": "uv run python agent/executor.py"
+    "cli": "uv run python -m agent.cli.main",
+    "agent": "uv run python -m agent.cli.main agent run"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

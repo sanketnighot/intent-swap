@@ -154,7 +154,7 @@ npm run deploy
 6. Start execution agent:
 
 ```bash
-uv run python agent/executor.py
+uv run python -m agent.cli.main agent run
 ```
 
 ## Environment Variables
@@ -171,6 +171,43 @@ See `.env.example`:
 - `POOL_FEE`
 - `POOL_TICK_SPACING`
 - `POLL_INTERVAL_MS`
+
+## CLI
+
+Run help:
+
+```bash
+uv run python -m agent.cli.main --help
+```
+
+Validate config:
+
+```bash
+uv run python -m agent.cli.main config validate
+uv run python -m agent.cli.main config validate --profile deploy
+```
+
+JSON output:
+
+```bash
+uv run python -m agent.cli.main --json config validate
+```
+
+Dry-run examples for tx-producing commands:
+
+```bash
+uv run python -m agent.cli.main intent execute --id 0 --dry-run
+uv run python -m agent.cli.main intent create --text "swap 1 ETH to USDC when condition is met" --dry-run
+```
+
+Intent inspection and execution commands:
+
+```bash
+uv run python -m agent.cli.main intent list
+uv run python -m agent.cli.main intent show --id 0
+uv run python -m agent.cli.main intent can-execute --id 0
+uv run python -m agent.cli.main intent execute --id 0
+```
 
 ## Coding Agent Setup
 
