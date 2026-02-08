@@ -1,7 +1,9 @@
 import time
 from argparse import Namespace
 
+from agent.gemini_client import parse_intent_text_with_gemini
 from agent.cli.output import emit_result
+from agent.models import ParsedIntent
 from agent.uniswap_client import (
     can_execute_intent,
     create_runtime_clients,
@@ -9,7 +11,10 @@ from agent.uniswap_client import (
     get_intent,
     get_intent_count,
     intent_to_dict,
+    load_pool_key_from_env,
+    submit_intent,
 )
+from agent.validator import load_parsed_intent_from_json_file, validate_parsed_intent
 
 
 def handle_intent_list(args: Namespace) -> int:
@@ -105,25 +110,38 @@ def handle_intent_execute(args: Namespace) -> int:
 
 
 def handle_intent_create(args: Namespace) -> int:
-    payload: dict[str, object] = {}
+    pool_key_context = load_pool_key_from_env()
+
+    parsed_intent: ParsedIntent
     if args.text is not None:
-        payload["text"] = args.text
-    if args.json_file is not None:
-        payload["json_file"] = args.json_file
+        parsed_intent = parse_intent_text_with_gemini(args.text, pool_key_context)
+    else:
+        parsed_intent = load_parsed_intent_from_json_file(args.json_file)
+
+    details: dict[str, object] = {"parsed_intent": parsed_intent.model_dump()}
 
     if args.dry_run:
+        validated = validate_parsed_intent(parsed_intent, pool_key_context)
+        details["validated_intent"] = validated.to_dict()
+
         emit_result(
             args.json_output,
             status="dry_run",
             message="No transaction sent for intent create dry-run",
-            details=payload,
+            details=details,
         )
         return 0
 
+    runtime = create_runtime_clients()
+    validated_intent = validate_parsed_intent(parsed_intent, runtime.pool_key)
+    submission = submit_intent(runtime, validated_intent.to_dict())
+
+    details["validated_intent"] = validated_intent.to_dict()
+    details["submission"] = submission
     emit_result(
         args.json_output,
-        status="not_implemented",
-        message="intent create is not implemented yet (planned for Phase 3)",
-        details=payload,
+        status="ok",
+        message="Intent submitted",
+        details=details,
     )
-    return 2
+    return 0

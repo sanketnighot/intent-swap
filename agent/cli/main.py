@@ -1,6 +1,8 @@
 import argparse
 import sys
 
+from dotenv import load_dotenv
+
 from agent.cli.commands.agent import handle_agent_run, handle_agent_run_once
 from agent.cli.commands.config import handle_config_validate
 from agent.cli.commands.intent import (
@@ -11,7 +13,7 @@ from agent.cli.commands.intent import (
     handle_intent_show,
 )
 from agent.cli.output import emit_result
-from agent.config import AGENT_PROFILE, DEPLOY_PROFILE
+from agent.config import AGENT_PROFILE, DEPLOY_PROFILE, GEMINI_PROFILE
 
 
 def _common_flags_parent() -> argparse.ArgumentParser:
@@ -129,7 +131,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     config_validate_parser.add_argument(
         "--profile",
-        choices=[AGENT_PROFILE, DEPLOY_PROFILE],
+        choices=[AGENT_PROFILE, DEPLOY_PROFILE, GEMINI_PROFILE],
         default=AGENT_PROFILE,
         help="Validation profile",
     )
@@ -139,6 +141,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    load_dotenv()
+
     parser = build_parser()
     args = parser.parse_args()
 
