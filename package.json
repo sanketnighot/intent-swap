@@ -1,0 +1,18 @@
+{
+  "name": "intent-swap",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal intent-based swap execution on Uniswap v4 hooks",
+  "scripts": {
+    "deploy": "node scripts/deploy.js",
+    "agent": "uv run python agent/executor.py"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.2"
+  },
+  "devDependencies": {
+    "@uniswap/v4-core": "latest",
+    "@uniswap/v4-periphery": "latest"
+  }
+}
