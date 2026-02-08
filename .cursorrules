@@ -1,0 +1,10 @@
+# Cursor Legacy Rules
+
+Use `.cursor/rules/intentswap-core.mdc` as the primary rule source.
+
+Core constraints:
+
+- Hook contract enforces execution correctness.
+- Offchain agent coordinates timing only.
+- No speculative trading logic.
+- Keep code explicit and minimal.

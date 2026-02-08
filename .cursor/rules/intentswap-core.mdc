@@ -1,0 +1,30 @@
+---
+description: IntentSwap core engineering rules and boundaries
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# IntentSwap Cursor Rule
+
+Use this repository as deterministic agentic infrastructure, not a speculative trading bot.
+
+## Required Behavior
+
+- Treat `contracts/IntentSwapHook.sol` as execution authority.
+- Treat offchain agent logic as coordination only.
+- Keep logic explicit, minimal, and line-by-line explainable.
+- Preserve non-custodial behavior.
+
+## Prohibited Behavior
+
+- No UI work unless requested.
+- No ML/prediction claims or optimization engines.
+- No hidden abstractions that reduce readability.
+
+## Workflow
+
+1. Read `AGENTS.md`, `README.md`, and `docs/architecture.md`.
+2. Implement only requested scope.
+3. Run syntax/tests where possible.
+4. Report changed files and validation commands.

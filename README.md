@@ -54,7 +54,7 @@ IntentSwapHook.beforeSwap(...)
   -> marks executed OR reverts
 ```
 
-## Core Components
+## Core Runtime Components
 
 ```text
 /
@@ -64,10 +64,9 @@ IntentSwapHook.beforeSwap(...)
 │   └── executor.py
 ├── scripts/
 │   └── deploy.js
-├── README.md
+├── .env.example
 ├── package.json
-├── pyproject.toml
-└── .env.example
+└── pyproject.toml
 ```
 
 ### Onchain: `contracts/IntentSwapHook.sol`
@@ -172,6 +171,18 @@ See `.env.example`:
 - `POOL_FEE`
 - `POOL_TICK_SPACING`
 - `POLL_INTERVAL_MS`
+
+## Coding Agent Setup
+
+This repository includes cross-agent instruction files:
+
+- `AGENTS.md` (canonical rules)
+- `CLAUDE.md` (Claude Code)
+- `CODEX.md` (Codex)
+- `.cursor/rules/intentswap-core.mdc` and `.cursorrules` (Cursor)
+- `.github/copilot-instructions.md` (Copilot)
+- `skills/` (repo-local reusable skills)
+- `docs/agent-index.md` (quick index)
 
 ## Submission Evidence Checklist
 
