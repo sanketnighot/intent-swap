@@ -151,6 +151,8 @@ class RuntimeClients:
     swap_target: Any
     pool_key: dict[str, Any]
     poll_interval_ms: int
+    rpc_timeout_sec: int
+    receipt_timeout_sec: int
 
 
 def required_env(name: str) -> str:
@@ -158,6 +160,19 @@ def required_env(name: str) -> str:
     if not value:
         raise RuntimeError(f"Missing required env var: {name}")
     return value
+
+
+def _env_positive_int(name: str, default: int) -> int:
+    raw = os.getenv(name, "").strip()
+    if raw == "":
+        return default
+    try:
+        parsed = int(raw)
+    except ValueError as error:
+        raise RuntimeError(f"{name} must be an integer") from error
+    if parsed <= 0:
+        raise RuntimeError(f"{name} must be > 0")
+    return parsed
 
 
 def build_pool_key(hook_address: str) -> dict[str, Any]:
@@ -220,9 +235,11 @@ def create_runtime_clients() -> RuntimeClients:
     private_key = required_env("PRIVATE_KEY")
     hook_address = Web3.to_checksum_address(required_env("HOOK_ADDRESS"))
     swap_target_address = Web3.to_checksum_address(required_env("SWAP_TARGET_ADDRESS"))
-    poll_interval_ms = int(os.getenv("POLL_INTERVAL_MS", "15000"))
+    poll_interval_ms = _env_positive_int("POLL_INTERVAL_MS", 15000)
+    rpc_timeout_sec = _env_positive_int("RPC_TIMEOUT_SEC", 10)
+    receipt_timeout_sec = _env_positive_int("RECEIPT_TIMEOUT_SEC", 120)
 
-    w3 = Web3(Web3.HTTPProvider(rpc_url))
+    w3 = Web3(Web3.HTTPProvider(rpc_url, request_kwargs={"timeout": rpc_timeout_sec}))
     if not w3.is_connected():
         raise RuntimeError("Could not connect to RPC_URL")
 
@@ -238,6 +255,8 @@ def create_runtime_clients() -> RuntimeClients:
         swap_target=swap_target,
         pool_key=pool_key,
         poll_interval_ms=poll_interval_ms,
+        rpc_timeout_sec=rpc_timeout_sec,
+        receipt_timeout_sec=receipt_timeout_sec,
     )
 
 
@@ -293,7 +312,7 @@ def execute_intent(runtime: RuntimeClients, intent_id: int) -> dict[str, Any]:
     swap_params = build_swap_params(intent)
     hook_data = intent_id_to_hook_data(intent_id)
     tx_hash = send_swap(runtime.w3, runtime.swap_target, runtime.pool_key, swap_params, hook_data, runtime.account)
-    receipt = runtime.w3.eth.wait_for_transaction_receipt(tx_hash)
+    receipt = runtime.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=runtime.receipt_timeout_sec)
 
     return {
         "status": "executed",
@@ -324,7 +343,7 @@ def submit_intent(runtime: RuntimeClients, validated_intent: dict[str, Any]) -> 
 
     signed = runtime.account.sign_transaction(tx)
     tx_hash = runtime.w3.eth.send_raw_transaction(signed.raw_transaction).hex()
-    receipt = runtime.w3.eth.wait_for_transaction_receipt(tx_hash)
+    receipt = runtime.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=runtime.receipt_timeout_sec)
 
     intent_id: int | None = None
     if receipt.logs:

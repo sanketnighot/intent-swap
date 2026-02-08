@@ -15,18 +15,23 @@ IntentSwap separates swap intent declaration from swap execution time.
 - Validates execution in `beforeSwap`.
 - Marks intent executed after successful validation.
 
-2. `agent/executor.py`
-- Polls intent state.
-- Filters non-executable intents.
-- Calls `canExecuteIntent(...)`.
-- Submits execution transaction with encoded intent id.
+2. `agent/execution_engine.py`
+- Runs autonomous execution passes.
+- Applies retry policy for onchain reads/submissions.
+- Emits structured reason codes for every decision path.
+- Reconciles in-flight transactions and prevents duplicate submissions.
 
-3. `agent/cli/main.py`
+3. `agent/state_store.py`
+- Persists in-flight transaction state in a local JSON file.
+- Enables restart-safe idempotent behavior.
+
+4. `agent/cli/main.py`
 - Provides CLI command groups: `intent`, `agent`, `config`.
 - Supports `intent create --text` via Gemini parsing and strict local validation.
 - Supports `intent create --json-file` for deterministic direct payload input.
+- Supports `agent run` and `agent run-once`.
 
-4. `scripts/deploy.js`
+5. `scripts/deploy.js`
 - Deploys hook from compiled artifact.
 
 ## Execution Flow

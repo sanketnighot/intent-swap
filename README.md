@@ -174,6 +174,12 @@ See `.env.example`:
 - `POOL_FEE`
 - `POOL_TICK_SPACING`
 - `POLL_INTERVAL_MS`
+- `RPC_TIMEOUT_SEC`
+- `RECEIPT_TIMEOUT_SEC`
+- `EXECUTOR_RETRY_ATTEMPTS`
+- `EXECUTOR_RETRY_DELAY_MS`
+- `EXECUTOR_INFLIGHT_TTL_SEC`
+- `EXECUTOR_STATE_FILE`
 
 ## CLI
 
@@ -213,7 +219,20 @@ uv run python -m agent.cli.main intent can-execute --id 0
 uv run python -m agent.cli.main intent execute --id 0
 uv run python -m agent.cli.main intent create --json-file intent.json
 uv run python -m agent.cli.main intent create --text "Swap 1000000 units of token0 to token1 when slippage <= 100 bps before 1735689600"
+uv run python -m agent.cli.main agent run --interval-ms 5000
+uv run python -m agent.cli.main agent run-once
+uv run python -m agent.cli.main agent run-once --dry-run
 ```
+
+`agent run` and `agent run-once` emit structured JSON event lines with reason codes such as:
+
+- `SKIP_EXECUTED`
+- `SKIP_EXPIRED`
+- `SKIP_NOT_EXECUTABLE`
+- `SKIP_INFLIGHT`
+- `EXECUTE_SUBMITTED`
+- `EXECUTE_CONFIRMED`
+- `EXECUTE_REVERTED`
 
 Example `intent.json` payload:
 

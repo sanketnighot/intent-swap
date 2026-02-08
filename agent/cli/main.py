@@ -119,6 +119,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run a single poll/execute pass",
         parents=[common],
     )
+    agent_run_once_parser.add_argument(
+        "--interval-ms",
+        type=int,
+        default=None,
+        help="Polling interval override in milliseconds (used for engine config)",
+    )
     agent_run_once_parser.set_defaults(handler=handle_agent_run_once)
 
     config_parser = root_subparsers.add_parser("config", help="Configuration commands")

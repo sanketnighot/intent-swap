@@ -40,3 +40,5 @@ typechain/
 # Misc
 *.log
 *.tmp
+.intentswap-state.json
+__pycache__/

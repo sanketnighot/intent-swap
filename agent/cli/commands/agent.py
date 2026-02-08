@@ -24,17 +24,12 @@ def handle_agent_run(args: Namespace) -> int:
 
 
 def handle_agent_run_once(args: Namespace) -> int:
-    if args.dry_run:
-        emit_result(
-            args.json_output,
-            status="dry_run",
-            message="agent run-once dry-run does not submit any transaction",
-        )
-        return 0
+    summary = executor.run_single_pass(interval_ms=args.interval_ms, dry_run=args.dry_run)
 
     emit_result(
         args.json_output,
-        status="not_implemented",
-        message="agent run-once is planned for Phase 4",
+        status="ok" if not args.dry_run else "dry_run",
+        message="Completed one executor pass",
+        details=summary,
     )
-    return 2
+    return 0

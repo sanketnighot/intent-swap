@@ -164,6 +164,40 @@ def validate_environment(profile: str = AGENT_PROFILE) -> ValidationReport:
         else:
             warnings.append("POLL_INTERVAL_MS not set, defaulting to 15000")
 
+        rpc_timeout = os.getenv("RPC_TIMEOUT_SEC", "").strip()
+        if rpc_timeout != "":
+            issue = _validate_positive_int("RPC_TIMEOUT_SEC", rpc_timeout)
+            if issue:
+                invalid["RPC_TIMEOUT_SEC"] = issue
+        else:
+            warnings.append("RPC_TIMEOUT_SEC not set, defaulting to 10")
+
+        receipt_timeout = os.getenv("RECEIPT_TIMEOUT_SEC", "").strip()
+        if receipt_timeout != "":
+            issue = _validate_positive_int("RECEIPT_TIMEOUT_SEC", receipt_timeout)
+            if issue:
+                invalid["RECEIPT_TIMEOUT_SEC"] = issue
+        else:
+            warnings.append("RECEIPT_TIMEOUT_SEC not set, defaulting to 120")
+
+        retry_attempts = os.getenv("EXECUTOR_RETRY_ATTEMPTS", "").strip()
+        if retry_attempts != "":
+            issue = _validate_positive_int("EXECUTOR_RETRY_ATTEMPTS", retry_attempts)
+            if issue:
+                invalid["EXECUTOR_RETRY_ATTEMPTS"] = issue
+
+        retry_delay = os.getenv("EXECUTOR_RETRY_DELAY_MS", "").strip()
+        if retry_delay != "":
+            issue = _validate_positive_int("EXECUTOR_RETRY_DELAY_MS", retry_delay)
+            if issue:
+                invalid["EXECUTOR_RETRY_DELAY_MS"] = issue
+
+        inflight_ttl = os.getenv("EXECUTOR_INFLIGHT_TTL_SEC", "").strip()
+        if inflight_ttl != "":
+            issue = _validate_positive_int("EXECUTOR_INFLIGHT_TTL_SEC", inflight_ttl)
+            if issue:
+                invalid["EXECUTOR_INFLIGHT_TTL_SEC"] = issue
+
     if profile == GEMINI_PROFILE:
         gemini_model = os.getenv("GEMINI_MODEL", "").strip()
         if gemini_model == "":
