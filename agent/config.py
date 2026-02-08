@@ -7,6 +7,7 @@ from web3 import Web3
 
 AGENT_PROFILE = "agent"
 DEPLOY_PROFILE = "deploy"
+GEMINI_PROFILE = "gemini"
 
 AGENT_REQUIRED_ENV = [
     "RPC_URL",
@@ -23,6 +24,10 @@ DEPLOY_REQUIRED_ENV = [
     "RPC_URL",
     "PRIVATE_KEY",
     "POOL_MANAGER_ADDRESS",
+]
+
+GEMINI_REQUIRED_ENV = [
+    "GEMINI_API_KEY",
 ]
 
 ADDRESS_ENV_KEYS = [
@@ -105,6 +110,8 @@ def validate_environment(profile: str = AGENT_PROFILE) -> ValidationReport:
         required = AGENT_REQUIRED_ENV
     elif profile == DEPLOY_PROFILE:
         required = DEPLOY_REQUIRED_ENV
+    elif profile == GEMINI_PROFILE:
+        required = GEMINI_REQUIRED_ENV
     else:
         return ValidationReport(
             profile=profile,
@@ -122,12 +129,12 @@ def validate_environment(profile: str = AGENT_PROFILE) -> ValidationReport:
         if value == "":
             missing.append(key)
 
-    if "RPC_URL" not in missing:
+    if "RPC_URL" in required and "RPC_URL" not in missing:
         issue = _validate_rpc_url(os.environ["RPC_URL"].strip())
         if issue:
             invalid["RPC_URL"] = issue
 
-    if "PRIVATE_KEY" not in missing:
+    if "PRIVATE_KEY" in required and "PRIVATE_KEY" not in missing:
         issue = _validate_private_key(os.environ["PRIVATE_KEY"].strip())
         if issue:
             invalid["PRIVATE_KEY"] = issue
@@ -157,5 +164,17 @@ def validate_environment(profile: str = AGENT_PROFILE) -> ValidationReport:
         else:
             warnings.append("POLL_INTERVAL_MS not set, defaulting to 15000")
 
-    return ValidationReport(profile=profile, missing=missing, invalid=invalid, warnings=warnings)
+    if profile == GEMINI_PROFILE:
+        gemini_model = os.getenv("GEMINI_MODEL", "").strip()
+        if gemini_model == "":
+            warnings.append("GEMINI_MODEL not set, defaulting to gemini-2.0-flash")
 
+        timeout = os.getenv("GEMINI_TIMEOUT_MS", "").strip()
+        if timeout != "":
+            issue = _validate_positive_int("GEMINI_TIMEOUT_MS", timeout)
+            if issue:
+                invalid["GEMINI_TIMEOUT_MS"] = issue
+        else:
+            warnings.append("GEMINI_TIMEOUT_MS not set, defaulting to 15000")
+
+    return ValidationReport(profile=profile, missing=missing, invalid=invalid, warnings=warnings)

@@ -756,12 +756,14 @@ name = "intent-swap-agent"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "web3" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "pydantic", specifier = ">=2.8.2" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "web3", specifier = ">=7.0.0" },
 ]

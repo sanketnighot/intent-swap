@@ -21,7 +21,12 @@ IntentSwap separates swap intent declaration from swap execution time.
 - Calls `canExecuteIntent(...)`.
 - Submits execution transaction with encoded intent id.
 
-3. `scripts/deploy.js`
+3. `agent/cli/main.py`
+- Provides CLI command groups: `intent`, `agent`, `config`.
+- Supports `intent create --text` via Gemini parsing and strict local validation.
+- Supports `intent create --json-file` for deterministic direct payload input.
+
+4. `scripts/deploy.js`
 - Deploys hook from compiled artifact.
 
 ## Execution Flow
@@ -32,6 +37,13 @@ IntentSwap separates swap intent declaration from swap execution time.
 4. Agent submits swap call with `hookData = abi.encode(intentId)`.
 5. Hook revalidates all constraints in `beforeSwap`.
 6. Swap executes or reverts.
+
+For natural-language intent creation:
+
+1. CLI receives text input.
+2. Gemini returns structured intent JSON.
+3. Local deterministic validator checks token pair, condition bounds, and expiry.
+4. Hook `submitIntent(...)` stores the validated intent onchain.
 
 ## Intent Data Model
 

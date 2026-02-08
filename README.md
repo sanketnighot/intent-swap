@@ -163,6 +163,9 @@ See `.env.example`:
 
 - `RPC_URL`
 - `PRIVATE_KEY`
+- `GEMINI_API_KEY`
+- `GEMINI_MODEL`
+- `GEMINI_TIMEOUT_MS`
 - `POOL_MANAGER_ADDRESS`
 - `HOOK_ADDRESS`
 - `SWAP_TARGET_ADDRESS`
@@ -185,6 +188,7 @@ Validate config:
 ```bash
 uv run python -m agent.cli.main config validate
 uv run python -m agent.cli.main config validate --profile deploy
+uv run python -m agent.cli.main config validate --profile gemini
 ```
 
 JSON output:
@@ -207,6 +211,27 @@ uv run python -m agent.cli.main intent list
 uv run python -m agent.cli.main intent show --id 0
 uv run python -m agent.cli.main intent can-execute --id 0
 uv run python -m agent.cli.main intent execute --id 0
+uv run python -m agent.cli.main intent create --json-file intent.json
+uv run python -m agent.cli.main intent create --text "Swap 1000000 units of token0 to token1 when slippage <= 100 bps before 1735689600"
+```
+
+Example `intent.json` payload:
+
+```json
+{
+  "token_in": "0x0000000000000000000000000000000000000001",
+  "token_out": "0x0000000000000000000000000000000000000002",
+  "amount_in": 1000000,
+  "condition_type": "MAX_SLIPPAGE_BPS",
+  "condition_value": 100,
+  "expiry": 1893456000
+}
+```
+
+Run current Python unit tests:
+
+```bash
+python3 -m unittest discover -s tests -v
 ```
 
 ## Coding Agent Setup

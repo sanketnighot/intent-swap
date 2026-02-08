@@ -8,6 +8,31 @@ from web3 import Web3
 
 HOOK_ABI: list[dict[str, Any]] = [
     {
+        "inputs": [
+            {
+                "components": [
+                    {"internalType": "address", "name": "currency0", "type": "address"},
+                    {"internalType": "address", "name": "currency1", "type": "address"},
+                    {"internalType": "uint24", "name": "fee", "type": "uint24"},
+                    {"internalType": "int24", "name": "tickSpacing", "type": "int24"},
+                    {"internalType": "address", "name": "hooks", "type": "address"},
+                ],
+                "internalType": "struct PoolKey",
+                "name": "key",
+                "type": "tuple",
+            },
+            {"internalType": "bool", "name": "zeroForOne", "type": "bool"},
+            {"internalType": "uint256", "name": "amountIn", "type": "uint256"},
+            {"internalType": "uint8", "name": "conditionType", "type": "uint8"},
+            {"internalType": "uint160", "name": "conditionValue", "type": "uint160"},
+            {"internalType": "uint64", "name": "expiry", "type": "uint64"},
+        ],
+        "name": "submitIntent",
+        "outputs": [{"internalType": "uint256", "name": "intentId", "type": "uint256"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
         "inputs": [],
         "name": "intentCount",
         "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
@@ -145,6 +170,11 @@ def build_pool_key(hook_address: str) -> dict[str, Any]:
     }
 
 
+def load_pool_key_from_env() -> dict[str, Any]:
+    hook_address = Web3.to_checksum_address(required_env("HOOK_ADDRESS"))
+    return build_pool_key(hook_address)
+
+
 def build_swap_params(intent: Any) -> dict[str, Any]:
     zero_for_one = bool(intent["zeroForOne"])
     return {
@@ -269,4 +299,45 @@ def execute_intent(runtime: RuntimeClients, intent_id: int) -> dict[str, Any]:
         "status": "executed",
         "tx_hash": tx_hash,
         "block_number": int(receipt.blockNumber),
+    }
+
+
+def submit_intent(runtime: RuntimeClients, validated_intent: dict[str, Any]) -> dict[str, Any]:
+    tx = runtime.hook.functions.submitIntent(
+        runtime.pool_key,
+        bool(validated_intent["zero_for_one"]),
+        int(validated_intent["amount_in"]),
+        int(validated_intent["condition_type_enum"]),
+        int(validated_intent["condition_value"]),
+        int(validated_intent["expiry"]),
+    ).build_transaction(
+        {
+            "from": runtime.account.address,
+            "nonce": runtime.w3.eth.get_transaction_count(runtime.account.address),
+            "chainId": runtime.w3.eth.chain_id,
+            "gasPrice": runtime.w3.eth.gas_price,
+        }
+    )
+
+    if "gas" not in tx:
+        tx["gas"] = runtime.w3.eth.estimate_gas(tx)
+
+    signed = runtime.account.sign_transaction(tx)
+    tx_hash = runtime.w3.eth.send_raw_transaction(signed.raw_transaction).hex()
+    receipt = runtime.w3.eth.wait_for_transaction_receipt(tx_hash)
+
+    intent_id: int | None = None
+    if receipt.logs:
+        try:
+            decoded = runtime.hook.events.IntentCreated().process_receipt(receipt)
+            if decoded:
+                intent_id = int(decoded[0]["args"]["intentId"])
+        except Exception:
+            intent_id = None
+
+    return {
+        "status": "submitted",
+        "tx_hash": tx_hash,
+        "block_number": int(receipt.blockNumber),
+        "intent_id": intent_id,
     }
